@@ -22,6 +22,7 @@ const Report = () => {
   const [formStep, setFormStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +147,7 @@ const Report = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="location">Location</Label>
-                      <Select required>
+                      <Select value={selectedLocation} onValueChange={setSelectedLocation} required>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Location">
                             <div className="flex items-center">

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -124,7 +123,7 @@ const Home = () => {
                     <SelectValue placeholder="Location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Locations</SelectItem>
+                    <SelectItem value="all-locations">All Locations</SelectItem>
                     {locations.map(location => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
                     ))}
@@ -136,7 +135,7 @@ const Home = () => {
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all-types">All Types</SelectItem>
                     <SelectItem value="Lost">Lost</SelectItem>
                     <SelectItem value="Found">Found</SelectItem>
                   </SelectContent>

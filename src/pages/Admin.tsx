@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,7 +26,6 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("items");
   
-  // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -36,7 +34,6 @@ const Admin = () => {
     return () => clearTimeout(timer);
   }, []);
   
-  // Sort and filter items
   const sortedItems = [...mockItems].sort((a, b) => {
     const fieldA = a[sortField as keyof typeof a];
     const fieldB = b[sortField as keyof typeof b];
@@ -50,7 +47,6 @@ const Admin = () => {
     return 0;
   });
   
-  // Filter items by status and search query
   const filteredItems = sortedItems.filter(item => {
     const matchesStatus = statusFilter ? item.status === statusFilter : true;
     const matchesSearch = searchQuery 
@@ -62,7 +58,6 @@ const Admin = () => {
     return matchesStatus && matchesSearch;
   });
   
-  // Filter claims by search query
   const filteredClaims = mockClaims.filter(claim => {
     const claimItem = mockItems.find(item => item.id === claim.itemId);
     const matchesSearch = searchQuery
@@ -113,12 +108,10 @@ const Admin = () => {
     setShowAIClaimDialog(true);
   };
   
-  // Get current selected claim
   const selectedClaim = selectedClaimId 
     ? mockClaims.find(claim => claim.id === selectedClaimId) 
     : null;
   
-  // Get item for selected claim
   const selectedClaimItem = selectedClaim 
     ? mockItems.find(item => item.id === selectedClaim.itemId) 
     : null;
@@ -234,7 +227,7 @@ const Admin = () => {
                     <SelectValue placeholder="Filter by Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all-statuses">All Statuses</SelectItem>
                     <SelectItem value="Pending">Pending</SelectItem>
                     <SelectItem value="Claimed">Claimed</SelectItem>
                     <SelectItem value="Resolved">Resolved</SelectItem>
@@ -536,7 +529,6 @@ const Admin = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Claim Details Dialog */}
       <Dialog open={showAIClaimDialog} onOpenChange={setShowAIClaimDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
