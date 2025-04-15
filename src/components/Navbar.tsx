@@ -1,12 +1,14 @@
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, PlusCircle, User, Menu } from "lucide-react";
+import { MapPin, PlusCircle, User, Menu, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -26,6 +28,11 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   
   return (
     <nav className={`glass sticky top-0 z-20 transition-all duration-300 ${
@@ -55,14 +62,45 @@ const Navbar = () => {
               <PlusCircle className="h-4 w-4 mr-2" />
               Report Item
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/login")}
-              className="border-mit-red text-mit-red hover:bg-mit-red/10"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Admin Login
-            </Button>
+            
+            {user ? (
+              <>
+                {user.role === "admin" ? (
+                  <Button 
+                    variant={isActive("/admin") ? "default" : "ghost"} 
+                    onClick={() => navigate("/admin")}
+                    className={isActive("/admin") ? "bg-mit-red text-white" : ""}
+                  >
+                    Admin Dashboard
+                  </Button>
+                ) : (
+                  <Button 
+                    variant={isActive("/student-dashboard") ? "default" : "ghost"} 
+                    onClick={() => navigate("/student-dashboard")}
+                    className={isActive("/student-dashboard") ? "bg-mit-red text-white" : ""}
+                  >
+                    My Dashboard
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  onClick={handleLogout}
+                  className="border-mit-red text-mit-red hover:bg-mit-red/10"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/login")}
+                className="border-mit-red text-mit-red hover:bg-mit-red/10"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Login
+              </Button>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -103,17 +141,57 @@ const Navbar = () => {
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Report Item
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  navigate("/login");
-                  setMobileMenuOpen(false);
-                }}
-                className="justify-start border-mit-red text-mit-red hover:bg-mit-red/10"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Admin Login
-              </Button>
+              
+              {user ? (
+                <>
+                  {user.role === "admin" ? (
+                    <Button 
+                      variant={isActive("/admin") ? "default" : "ghost"} 
+                      onClick={() => {
+                        navigate("/admin");
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`justify-start ${isActive("/admin") ? "bg-mit-red text-white" : ""}`}
+                    >
+                      Admin Dashboard
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant={isActive("/student-dashboard") ? "default" : "ghost"} 
+                      onClick={() => {
+                        navigate("/student-dashboard");
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`justify-start ${isActive("/student-dashboard") ? "bg-mit-red text-white" : ""}`}
+                    >
+                      My Dashboard
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="justify-start border-mit-red text-mit-red hover:bg-mit-red/10"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    navigate("/login");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="justify-start border-mit-red text-mit-red hover:bg-mit-red/10"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         )}

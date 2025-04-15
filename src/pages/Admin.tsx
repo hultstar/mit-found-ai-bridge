@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,15 +8,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Eye, Check, X, Filter, ArrowUpDown, SearchIcon, Bot, Bell, User, LogOut, ChevronDown, PenSquare, Trash2, Mail } from "lucide-react";
+import { Eye, Check, X, Filter, ArrowUpDown, SearchIcon, Bot, Bell, User, LogOut, ChevronDown, PenSquare, Trash2, Mail, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { mockItems, mockClaims, mockAIResponses } from "@/data/mockData";
 import { showToast } from "@/components/Toast";
 import AIResponseBox from "@/components/AIResponseBox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
+import EnrollmentManagement from "./EnrollmentManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sortField, setSortField] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -27,12 +31,17 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState("items");
   
   useEffect(() => {
+    // Check if user is admin
+    if (!user || user.role !== "admin") {
+      navigate("/login");
+    }
+    
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, navigate]);
   
   const sortedItems = [...mockItems].sort((a, b) => {
     const fieldA = a[sortField as keyof typeof a];
@@ -95,11 +104,7 @@ const Admin = () => {
   };
   
   const handleLogout = () => {
-    showToast({
-      type: "success",
-      title: "Logged Out",
-      description: "You have been successfully logged out."
-    });
+    logout();
     navigate("/login");
   };
   
@@ -130,7 +135,7 @@ const Admin = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-500">Manage lost and found items and claims</p>
+          <p className="text-gray-500">Manage lost and found items, claims and enrollments</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -203,106 +208,112 @@ const Admin = () => {
       </div>
       
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 w-full max-w-md">
+        <TabsList className="grid grid-cols-3 w-full max-w-md">
           <TabsTrigger value="items">Items</TabsTrigger>
           <TabsTrigger value="claims">Claims</TabsTrigger>
+          <TabsTrigger value="enrollments" className="flex items-center gap-1">
+            <UserCheck className="h-4 w-4" />
+            <span>Enrollments</span>
+          </TabsTrigger>
         </TabsList>
         
         <div className="mt-6">
-          <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
-            <div className="relative max-w-sm">
-              <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={`Search ${activeTab}...`}
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex gap-3">
-              {activeTab === "items" && (
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-statuses">All Statuses</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Claimed">Claimed</SelectItem>
-                    <SelectItem value="Resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+          {activeTab !== "enrollments" && (
+            <div className="flex flex-col md:flex-row gap-4 justify-between mb-6">
+              <div className="relative max-w-sm">
+                <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder={`Search ${activeTab}...`}
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               
-              <Dialog open={showAIMatch} onOpenChange={setShowAIMatch}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Bot className="h-4 w-4 mr-2 text-mit-red" />
-                    AI Match
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>AI Item Matching</DialogTitle>
-                    <DialogDescription>
-                      Analyze potential matches between lost and found items
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="flex flex-col gap-2">
-                      <p className="text-sm font-medium">Comparing Items:</p>
-                      
-                      <div className="bg-slate-50 p-3 rounded-md space-y-3">
-                        <div className="flex gap-3">
-                          <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
-                            <img 
-                              src="https://images.unsplash.com/photo-1592286927505-1def25115df8" 
-                              alt="iPhone" 
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{mockAIResponses.itemMatching.items[0]}</p>
-                            <p className="text-xs text-gray-500">Lost - Cafeteria</p>
-                          </div>
-                        </div>
+              <div className="flex gap-3">
+                {activeTab === "items" && (
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Filter by Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-statuses">All Statuses</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Claimed">Claimed</SelectItem>
+                      <SelectItem value="Resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                <Dialog open={showAIMatch} onOpenChange={setShowAIMatch}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Bot className="h-4 w-4 mr-2 text-mit-red" />
+                      AI Match
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>AI Item Matching</DialogTitle>
+                      <DialogDescription>
+                        Analyze potential matches between lost and found items
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="flex flex-col gap-2">
+                        <p className="text-sm font-medium">Comparing Items:</p>
                         
-                        <div className="flex gap-3">
-                          <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
-                            <img 
-                              src="https://images.unsplash.com/photo-1585060544812-6b45742d762f" 
-                              alt="iPhone" 
-                              className="h-full w-full object-cover"
-                            />
+                        <div className="bg-slate-50 p-3 rounded-md space-y-3">
+                          <div className="flex gap-3">
+                            <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
+                              <img 
+                                src="https://images.unsplash.com/photo-1592286927505-1def25115df8" 
+                                alt="iPhone" 
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{mockAIResponses.itemMatching.items[0]}</p>
+                              <p className="text-xs text-gray-500">Lost - Cafeteria</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">{mockAIResponses.itemMatching.items[1]}</p>
-                            <p className="text-xs text-gray-500">Found - Main Building</p>
+                          
+                          <div className="flex gap-3">
+                            <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
+                              <img 
+                                src="https://images.unsplash.com/photo-1585060544812-6b45742d762f" 
+                                alt="iPhone" 
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{mockAIResponses.itemMatching.items[1]}</p>
+                              <p className="text-xs text-gray-500">Found - Main Building</p>
+                            </div>
                           </div>
                         </div>
                       </div>
+                      
+                      <AIResponseBox
+                        title="AI Match Analysis"
+                        confidence={mockAIResponses.itemMatching.confidence}
+                        reason={mockAIResponses.itemMatching.reason}
+                      />
+                      
+                      <div className="flex justify-between mt-4">
+                        <Button variant="outline" onClick={() => setShowAIMatch(false)}>
+                          Close
+                        </Button>
+                        <Button className="bg-mit-red hover:bg-red-700">
+                          Notify Owners
+                        </Button>
+                      </div>
                     </div>
-                    
-                    <AIResponseBox
-                      title="AI Match Analysis"
-                      confidence={mockAIResponses.itemMatching.confidence}
-                      reason={mockAIResponses.itemMatching.reason}
-                    />
-                    
-                    <div className="flex justify-between mt-4">
-                      <Button variant="outline" onClick={() => setShowAIMatch(false)}>
-                        Close
-                      </Button>
-                      <Button className="bg-mit-red hover:bg-red-700">
-                        Notify Owners
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         
         <TabsContent value="items" className="mt-0">
@@ -526,6 +537,10 @@ const Admin = () => {
               </div>
             </CardFooter>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="enrollments" className="mt-0">
+          <EnrollmentManagement />
         </TabsContent>
       </Tabs>
       

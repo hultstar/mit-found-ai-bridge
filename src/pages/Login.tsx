@@ -5,42 +5,44 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { MapPin, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
-import { showToast } from "@/components/Toast";
+import { MapPin, Lock, ArrowRight, Eye, EyeOff, UserPlus } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    setTimeout(() => {
-      setLoading(false);
-      
-      if (email === "admin@mit.edu") {
-        showToast({
-          type: "success",
-          title: "Login Successful",
-          description: "Welcome back, admin!"
-        });
-        navigate("/admin");
-      } else {
-        showToast({
-          type: "error",
-          title: "Login Failed",
-          description: "Invalid email or password."
-        });
-      }
-    }, 1000);
-  };
+  const [activeTab, setActiveTab] = useState("student");
   
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        if (email === "admin@mit.edu") {
+          navigate("/admin");
+        } else {
+          navigate("/student-dashboard");
+        }
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoading(false);
+    }
   };
   
   return (
@@ -61,19 +63,26 @@ const Login = () => {
         
         <Card className="border-t-4 border-t-mit-red glass-form">
           <CardHeader>
-            <CardTitle>Admin Login</CardTitle>
+            <CardTitle>Login</CardTitle>
             <CardDescription>
-              Sign in to access the admin dashboard
+              Sign in to access the Lost & Found system
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="student">Student</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@mit.edu"
+                  placeholder={activeTab === "admin" ? "admin@mit.edu" : "student@mit.edu"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/70"
@@ -121,12 +130,30 @@ const Login = () => {
                 )}
               </Button>
             </form>
+            
+            {activeTab === "student" && (
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">Don't have an account?</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-2 w-full border-mit-red text-mit-red hover:bg-mit-red/10"
+                  onClick={() => navigate("/signup")}
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create Student Account
+                </Button>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-4">
             <div className="text-sm text-gray-500">
               <p className="flex items-center justify-center">
                 <Lock className="h-4 w-4 mr-1 text-mit-red" />
-                Demo credentials: admin@mit.edu / any password
+                {activeTab === "admin" ? (
+                  "Demo credentials: admin@mit.edu / any password"
+                ) : (
+                  "Demo student login: Use any registered enrollment number"
+                )}
               </p>
             </div>
           </CardFooter>
