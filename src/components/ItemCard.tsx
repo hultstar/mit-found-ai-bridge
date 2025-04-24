@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +7,10 @@ import { Item } from "@/data/mockData";
 
 interface ItemCardProps {
   item: Item;
+  actions?: React.ReactNode;  // Added this line to fix the build error
 }
 
-const ItemCard = ({ item }: ItemCardProps) => {
+const ItemCard = ({ item, actions }: ItemCardProps) => {
   const navigate = useNavigate();
   
   const badgeVariant = item.type === "Lost" 
@@ -58,13 +58,17 @@ const ItemCard = ({ item }: ItemCardProps) => {
         </p>
       </CardContent>
       <CardFooter>
-        <Button 
-          className="w-full bg-mit-red hover:bg-red-700" 
-          onClick={() => navigate(`/item/${item.id}`)}
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View Details
-        </Button>
+        {actions ? (
+          actions
+        ) : (
+          <Button 
+            className="w-full bg-mit-red hover:bg-red-700" 
+            onClick={() => navigate(`/item/${item.id}`)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
