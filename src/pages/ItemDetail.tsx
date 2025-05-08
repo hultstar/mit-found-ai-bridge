@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ const ItemDetail = () => {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRelatedAI, setShowRelatedAI] = useState(false);
-  const [showMapPreview, setShowMapPreview] = useState(false);
+  const [showMapPreview, setShowMapPreview] = useState(true); // Set to true by default to show map
   
   useEffect(() => {
     // Simulate API call delay
@@ -227,9 +226,9 @@ const ItemDetail = () => {
         </Card>
       </div>
       
-      {/* Map preview section */}
-      {showMapPreview && hasCoordinates && (
-        <div className="mt-6 p-4 bg-white rounded-lg shadow-md animate-fade-in">
+      {/* Map preview section - Moved above related info for better visibility */}
+      {hasCoordinates && (
+        <div className={`mt-6 p-4 bg-white rounded-lg shadow-md ${showMapPreview ? 'block' : 'hidden'}`}>
           <h3 className="text-lg font-semibold mb-3 flex items-center">
             <Navigation className="h-5 w-5 mr-2 text-mit-red" />
             Location Map
