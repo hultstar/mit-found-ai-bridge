@@ -1,4 +1,3 @@
-
 export interface Item {
   id: string;
   title: string;
@@ -9,6 +8,10 @@ export interface Item {
   date: string;
   contactEmail: string;
   status: "Pending" | "Claimed" | "Resolved";
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface Claim {
@@ -45,7 +48,11 @@ export const mockItems: Item[] = [
     type: "Lost",
     date: "2023-04-10",
     contactEmail: "student@mit.edu",
-    status: "Pending"
+    status: "Pending",
+    coordinates: {
+      latitude: 42.3596,
+      longitude: -71.0912
+    }
   },
   {
     id: "2",
@@ -56,7 +63,11 @@ export const mockItems: Item[] = [
     type: "Lost",
     date: "2023-04-12",
     contactEmail: "johndoe@mit.edu",
-    status: "Claimed"
+    status: "Claimed",
+    coordinates: {
+      latitude: 42.3601,
+      longitude: -71.0942
+    }
   },
   {
     id: "3",
@@ -78,7 +89,11 @@ export const mockItems: Item[] = [
     type: "Found",
     date: "2023-04-08",
     contactEmail: "staff@mit.edu",
-    status: "Pending"
+    status: "Pending",
+    coordinates: {
+      latitude: 42.3598,
+      longitude: -71.0921
+    }
   },
   {
     id: "5",
@@ -100,7 +115,11 @@ export const mockItems: Item[] = [
     type: "Found",
     date: "2023-04-11",
     contactEmail: "frontdesk@mit.edu",
-    status: "Resolved"
+    status: "Resolved",
+    coordinates: {
+      latitude: 42.3601,
+      longitude: -71.0942
+    }
   }
 ];
 
