@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Item, mockItems, mockClaims } from "@/data/mockData";
-import { MapPin, Calendar, Mail, ArrowLeft, Flag, AlertTriangle, Share2, Navigation } from "lucide-react";
+import { MapPin, Calendar, Mail, ArrowLeft, Flag, AlertTriangle, Share2, Navigation, Globe } from "lucide-react";
 import { showToast } from "@/components/Toast";
 import AIResponseBox from "@/components/AIResponseBox";
 
@@ -16,6 +16,7 @@ const ItemDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showRelatedAI, setShowRelatedAI] = useState(false);
   const [showMapPreview, setShowMapPreview] = useState(true); // Set to true by default to show map
+  const [mapView, setMapView] = useState<"standard" | "satellite" | "streets">("streets");
   
   useEffect(() => {
     // Simulate API call delay
@@ -69,6 +70,30 @@ const ItemDetail = () => {
   const hasCoordinates = item?.coordinates && 
     item.coordinates.latitude && 
     item.coordinates.longitude;
+
+  // Get the map style based on the current view selection
+  const getMapStyle = () => {
+    switch(mapView) {
+      case "satellite":
+        return "mapbox://styles/mapbox/satellite-streets-v11";
+      case "standard":
+        return "mapbox://styles/mapbox/light-v11";
+      case "streets":
+      default:
+        return "mapbox://styles/mapbox/streets-v11";
+    }
+  };
+  
+  // Generate map image URL with the appropriate style
+  const getMapImageUrl = () => {
+    if (!hasCoordinates || !item?.coordinates) return "";
+    
+    const style = getMapStyle();
+    const { longitude, latitude } = item.coordinates;
+    const styleId = style.split('/').pop();
+    
+    return `https://api.mapbox.com/styles/v1/mapbox/${styleId}/static/pin-s+ff0000(${longitude},${latitude})/${longitude},${latitude},15,0/600x300@2x?access_token=pk.eyJ1IjoibG92YWJsZS1haSIsImEiOiJjbHdqYnk5NzMwNjdhMnBsajVybDRjZ3dqIn0.q5e4h5BiEjzwRLZz-G_vTg`;
+  };
   
   if (loading) {
     return (
@@ -226,22 +251,44 @@ const ItemDetail = () => {
         </Card>
       </div>
       
-      {/* Map preview section - Moved above related info for better visibility */}
+      {/* Map preview section - Enhanced with style options */}
       {hasCoordinates && (
         <div className={`mt-6 p-4 bg-white rounded-lg shadow-md ${showMapPreview ? 'block' : 'hidden'}`}>
-          <h3 className="text-lg font-semibold mb-3 flex items-center">
-            <Navigation className="h-5 w-5 mr-2 text-mit-red" />
-            Location Map
-          </h3>
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-semibold flex items-center">
+              <Globe className="h-5 w-5 mr-2 text-mit-red" />
+              Location Map
+            </h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Map Style:</span>
+              <div className="flex space-x-1">
+                {["streets", "satellite", "standard"].map((style) => (
+                  <Button 
+                    key={style}
+                    variant={mapView === style ? "default" : "outline"}
+                    size="sm"
+                    className={mapView === style ? "bg-mit-red hover:bg-red-700" : ""}
+                    onClick={() => setMapView(style as "streets" | "satellite" | "standard")}
+                  >
+                    {style.charAt(0).toUpperCase() + style.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="rounded-lg overflow-hidden border border-gray-200">
             <img 
-              src={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+ff0000(${item.coordinates.longitude},${item.coordinates.latitude})/${item.coordinates.longitude},${item.coordinates.latitude},15,0/600x300@2x?access_token=pk.eyJ1IjoibG92YWJsZS1haSIsImEiOiJjbHdqYnk5NzMwNjdhMnBsajVybDRjZ3dqIn0.q5e4h5BiEjzwRLZz-G_vTg`}
+              src={getMapImageUrl()}
               alt="Location map"
               className="w-full h-auto"
             />
           </div>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 mt-2 flex items-center">
+            <Navigation className="h-4 w-4 mr-1 text-gray-400" />
             This map shows the approximate location where the item was {item.type === "Lost" ? "last seen" : "found"}.
+            {item.type === "Lost" ? 
+              " The item may have been lost somewhere along the path to this location." : 
+              " You can use these coordinates to precisely locate the item."}
           </p>
         </div>
       )}
