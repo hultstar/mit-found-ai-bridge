@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Item, mockItems, mockClaims } from "@/data/mockData";
-import { MapPin, Calendar, Mail, ArrowLeft, Flag, AlertTriangle, Share2 } from "lucide-react";
+import { MapPin, Calendar, Mail, ArrowLeft, Flag, AlertTriangle, Share2, Navigation } from "lucide-react";
 import { showToast } from "@/components/Toast";
 import AIResponseBox from "@/components/AIResponseBox";
 
@@ -16,6 +16,7 @@ const ItemDetail = () => {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRelatedAI, setShowRelatedAI] = useState(false);
+  const [showMapPreview, setShowMapPreview] = useState(false);
   
   useEffect(() => {
     // Simulate API call delay
@@ -65,6 +66,11 @@ const ItemDetail = () => {
     });
   };
   
+  // Check if the item has coordinates for geotagging
+  const hasCoordinates = item?.coordinates && 
+    item.coordinates.latitude && 
+    item.coordinates.longitude;
+  
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-64">
@@ -105,6 +111,21 @@ const ItemDetail = () => {
             alt={item.title}
             className="w-full h-auto object-cover"
           />
+          
+          {/* Map preview toggle button if coordinates exist */}
+          {hasCoordinates && (
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="absolute bottom-4 right-4 bg-white/90 hover:bg-white"
+                onClick={() => setShowMapPreview(!showMapPreview)}
+              >
+                <Navigation className="h-4 w-4 mr-2" />
+                {showMapPreview ? "Hide Map" : "Show Location"}
+              </Button>
+            </div>
+          )}
         </div>
         
         <Card className="glass">
@@ -116,10 +137,17 @@ const ItemDetail = () => {
               </Badge>
             </div>
             
-            <div className="mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <Badge className={statusBadge} variant="outline">
                 {item.status}
               </Badge>
+              
+              {/* Display geotag badge if coordinates exist */}
+              {hasCoordinates && (
+                <Badge className="bg-blue-100 text-blue-800 border-blue-200" variant="outline">
+                  <Navigation className="h-3 w-3 mr-1" /> Geotagged
+                </Badge>
+              )}
             </div>
             
             <div className="space-y-4 mb-6">
@@ -137,6 +165,14 @@ const ItemDetail = () => {
                 <Mail className="h-5 w-5 mr-2 mt-0.5 text-mit-red" />
                 <span>{item.contactEmail}</span>
               </div>
+              
+              {/* Display coordinates if they exist */}
+              {hasCoordinates && (
+                <div className="flex items-start text-gray-600">
+                  <Navigation className="h-5 w-5 mr-2 mt-0.5 text-mit-red" />
+                  <span>Coordinates: {item.coordinates.latitude.toFixed(4)}, {item.coordinates.longitude.toFixed(4)}</span>
+                </div>
+              )}
             </div>
             
             <Separator className="my-4" />
@@ -190,6 +226,26 @@ const ItemDetail = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Map preview section */}
+      {showMapPreview && hasCoordinates && (
+        <div className="mt-6 p-4 bg-white rounded-lg shadow-md animate-fade-in">
+          <h3 className="text-lg font-semibold mb-3 flex items-center">
+            <Navigation className="h-5 w-5 mr-2 text-mit-red" />
+            Location Map
+          </h3>
+          <div className="rounded-lg overflow-hidden border border-gray-200">
+            <img 
+              src={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+ff0000(${item.coordinates.longitude},${item.coordinates.latitude})/${item.coordinates.longitude},${item.coordinates.latitude},15,0/600x300@2x?access_token=pk.eyJ1IjoibG92YWJsZS1haSIsImEiOiJjbHdqYnk5NzMwNjdhMnBsajVybDRjZ3dqIn0.q5e4h5BiEjzwRLZz-G_vTg`}
+              alt="Location map"
+              className="w-full h-auto"
+            />
+          </div>
+          <p className="text-sm text-gray-500 mt-2">
+            This map shows the approximate location where the item was {item.type === "Lost" ? "last seen" : "found"}.
+          </p>
+        </div>
+      )}
       
       {showRelatedAI && (
         <div className="mt-12 animate-fade-in">
